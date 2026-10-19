@@ -1,0 +1,36 @@
+## 你的 patch 层：`$DSH_HOME/profiles/web/cordis.patch.yml`
+##
+## 这个文件在**所有 bundle 层之后**应用，是你唯一的手工覆盖点。
+## 顶层是一个 YAML 数组；空文件写成 `[]` 也可以（新 profile 默认就是 `[]`）。
+##
+## 三种写法（下面的都实测过）：
+##   1) insert   —— 把一个「不自动挂载」的包挂上来（只有 dsh.client、没有 dsh.bundle 的包必须这样挂）
+##   2) disabled —— 关掉某个已存在的条目（id 要写对，不是包名）
+##   3) config   —— 只改某个条目的配置，不动它的挂载
+##
+## ⚠️ 三个容易写错的点：
+##   · `name` 永远写 **npm 包名**（`@scope/pkg`），`id` 是你自己起的、profile 内唯一的条目 id
+##   · `id` 撞了 => 启动失败 `duplicate loader entry id: xxx`（装之前先 `--dump-config | Select-String "<id>"`）
+##   · 文件必须是 **UTF-8 无 BOM**：PowerShell 5.1 的 `Set-Content -Encoding UTF8` 会写 BOM，直接把首行注释吞掉
+##     —— 用 `Out-File -Encoding utf8NoBOM`，或 Node 的 `fs.writeFileSync(path, text, 'utf8')`
+##
+## 改完怎么验（不重启就能看结构）：
+##   dsh --profile web --dump-config | Select-String "<你的 id>"
+
+# ① insert：挂一个只声明了 dsh.client 的包（实测：@kira905/dsh-butler-archive）
+- insert:
+    - id: dsh-butler-archive
+      name: '@kira905/dsh-butler-archive'
+
+# ② config：给一个已存在的条目加参数（这里以官方 time-context 为例）
+#    注意 id 是条目 id（`time-context`），不是包名。
+# - insert:
+#     - id: time-context
+#       name: '@deepseek-ai/dsh-time-context'
+#       config:
+#         timeZone: Asia/Shanghai
+#         refreshIntervalMs: 60000
+
+# ③ disabled：关掉一个条目（只写 id + disabled: true）
+# - id: session-title-llm
+#   disabled: true
